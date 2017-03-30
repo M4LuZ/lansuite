@@ -476,12 +476,12 @@ class seat2 {
               case "9":
                 $tooltip .= t('Block') .': '. $this->CoordinateToBlockAndName($x + 1, $y, $blockid) . HTML_NEWLINE;
                 $tooltip .= t('Benutzername') .': '. $user_info[$y][$x]['username'] . HTML_NEWLINE;
-                if (!$cfg['sys_internet'] or $auth['type'] > 1 or ($auth['userid'] == $selected_user and $selected_user != false))
+                if (!$cfg['sys_internet'] or $auth['type'] > 1 or ($selected_user != false and $auth['userid'] == $user_info[$y][$x]['userid']))
                 $tooltip .= t('Name') .': '. trim($user_info[$y][$x]['firstname']) .' '. trim($user_info[$y][$x]['name']) . HTML_NEWLINE;
                 $tooltip .= t('Clan') .': '. $user_info[$y][$x]['clan'] . HTML_NEWLINE;
                 $tooltip .= t('IP') .': '. $seat_ip[$y][$x] . HTML_NEWLINE;
                 if ($func->chk_img_path($user_info[$y][$x]['avatar_path']) and
-                ($cfg['seating_show_user_pics'] or !$cfg['sys_internet'] or $auth['type'] > 1 or ($auth['userid'] == $selected_user and $selected_user != false)))
+                ($cfg['seating_show_user_pics'] or !$cfg['sys_internet'] or $auth['type'] > 1 or ($selected_user != false and $auth['userid'] == $user_info[$y][$x]['userid'])))
                 $tooltip .= '<img src=\''. $user_info[$y][$x]['avatar_path'] .'\' style=\'max-width:100%;\' />' . HTML_NEWLINE;
               break;
               case "1":
