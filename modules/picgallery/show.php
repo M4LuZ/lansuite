@@ -147,7 +147,15 @@ elseif (!$akt_file) {
 		if ($z == $_GET["page"]) $page_selection .= "[<b>$z</b>] ";
 		else $page_selection .= "[<a href=\"index.php?mod=picgallery&file={$_GET["file"]}&page=$z\">$z</a>] ";
 	}
-	if ($num_pages > 1) $dsp->AddDoubleRow(t('Seite'), $page_selection);
+     
+        if ($num_pages > 1){//Multi-page handling
+            $Back='&nbsp;';
+            $Forward='&nbsp;';
+            if ($_GET['page']!=0) $RowContent .= $dsp->FetchLink('[&lt;&lt;Vorherige Seite&lt;&lt;]',"index.php?mod=picgallery&file={$_GET["file"]}&page=" . ($_GET['page']-1)); //add back-button if this is not the first page
+            $RowContent .=$page_selection;
+            if ($_GET['page']<$num_pages-1) $RowContent .=$dsp->FetchLink('[&gt;&gt;NÃ¤chste Seite&gt;&gt;]',"index.php?mod=picgallery&file={$_GET["file"]}&page=".($_GET['page']+1)); //add forward button if this is not the last page
+            $dsp->AddDoubleRow(t('Seite'), $RowContent);
+        } 
 
 	// Show Picture-List
 	if (!$file_list && !$package_list) $dsp->AddSingleRow("<i>".t('Keine Bilder in diesem Ordner vorhanden')."</i>");
@@ -296,7 +304,7 @@ elseif (!$akt_file) {
     $smarty->assign('rows', $rows);
 		$dsp->AddSmartyTpl('ls_row_gallery', 'picgallery');
 	}
-
+$dsp->AddDoubleRow(t('Seite'), $RowContent);
 	// Stats
 	$dsp->AddDoubleRow(t('Statistiken'), "$num_files ".t('Dateien')." (". (round(($dir_size / 1024), 1)) ."kB); ".t('Letzte Ã„nderung').": ". $func->unixstamp2date($last_modified, "datetime"));
 
@@ -346,7 +354,7 @@ elseif (!$akt_file) {
       // Videos
       if (IsSupportedVideo($extension)) {
 				$dsp->AddDoubleRow("", '<video width="450" height="350" src="'. $root_file .'" autobuffer autoplay controls>
-          <div class="video-fallback"><br>Du benötigst einen Browser, der HTML5 unterstützt.</div>
+          <div class="video-fallback"><br>Du benï¿½tigst einen Browser, der HTML5 unterstï¿½tzt.</div>
         </video>');
 
       // Pics
@@ -370,7 +378,7 @@ elseif (!$akt_file) {
 				$dl_button = $dsp->FetchIcon($js_full_link, "fullscreen", t('Vollbild'));
 			$full_button = $dsp->FetchIcon("index.php?mod=picgallery&action=download&design=base&picurl={$_GET["file"]}", "download", t('Bild herrunterladen'));
 			($auth[type] > "1") ? $del_button = $dsp->FetchIcon("index.php?mod=picgallery&action=delete&file={$_GET["file"]}", "delete", t('Bild l&ouml;schen')) : $del_button = "";
-			$note_button = $dsp->FetchIcon("index.php?mod=picgallery&action=download&design=base&picurl={$_GET["file"]}", "add", t('Verlinkung hinzufügen'));
+			$note_button = $dsp->FetchIcon("index.php?mod=picgallery&action=download&design=base&picurl={$_GET["file"]}", "add", t('Verlinkung hinzufï¿½gen'));
 
 
 			// Scan Directory
