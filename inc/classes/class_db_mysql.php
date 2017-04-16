@@ -58,7 +58,7 @@ class db {
     $user = $config['database']['user'];
     $pass = $config['database']['passwd'];
     $database = $config['database']['database'];
-    $charset = $config['database']['charset'];
+    @$charset = $config['database']['charset'];
 
     // Try to connect
     if ($this->mysqli) $this->link_id = @mysqli_connect($server, $user, $pass);
