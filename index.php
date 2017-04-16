@@ -355,6 +355,14 @@
     if (isset($debug)) $debug->tracker("All upto HTML-Output");
 
     $framework->html_out();  // Output of all HTML
+    
+    //export data to $_SESSION for usage outside of LANsuite
+    if (isset($config['lansuite']['export_vars'])&& $config['lansuite']['export_vars']){
+        //$_SESSION['cfg'] = $cfg;
+        $_SESSION['auth'] = $auth;
+        //$_SESSION['config'] = $config;
+    }
+    
      unset($framework);
      unset($smarty);
      unset($templ);
