@@ -298,6 +298,11 @@ class func {
     $aTransSpecchar = array('&amp;' => '&', '&quot;' => '"', '&lt;' => '<', '&gt;' => '>');
     return strtr($string, $aTransSpecchar);
   }
+  
+  
+  function AllowQuotes($string){
+    return strtr($string, array('&amp;' => '&'));
+  } 
 
   // Add slashes at any non GPC-variable
   // This function musst be used, if ' come from other sources, than $_GET, or $_POST
@@ -472,7 +477,7 @@ class func {
       } else echo "Error: Function check_var needs defined: var, datatype (may be integer, double, string, boolean, object or array), [optionally: min_length], [optionally: max_length] <br/> For more information please visit the lansuite programmers docu";
   }
 
-  function checkIP($ip) {
+  function checkIP($ip) { //@TODO: Add IPv6 detection....
       if (strlen($ip) < 5 OR strlen($ip) > 15) return 0;
 
       $IPParts = explode(".", $ip);
@@ -840,6 +845,41 @@ class func {
     function isModActive($mod, &$caption = '') {
       $caption = $this->ActiveModules[$mod];
       return array_key_exists($mod, $this->ActiveModules);
+    }
+    
+    /**
+     * Searches through a text and replaces occurences of %VARIABLENAME% with their counterpart.
+     * Just has basic stuff required to make information pages more dynamic, more to be added
+     * Be careful that you only expose uncritical values, otherwise this could be used to leak important data.
+     * @param string $text The test to replace stuff in
+     */
+    function replaceVariables($text){
+        global $auth, $db;
+        
+        $vars = array('%USERID%', '%PARTYID%');
+        $replace= array ($auth['userid'], $_SESSION['party_id']);
+        
+        //fetch partyprice...
+        include_once 'modules/party/class_party.php';
+        $party = new party();
+        $entrancedata = $party->GetUserEntranceData($_SESSION['party_id']);
+        $partypricetxt = print_r($entrancedata, true);
+        //add this to the replacement array
+        array_push($vars, '%PARTYPRICE%');
+        array_push($replace, $partypricetxt);
+        
+        /*
+         * Check if we should add a GiroCode in the text.
+         * This is definitely the wrong place for this, but appears the most elegant way ATM
+         * @TODO: Implement this via a hook
+         */
+        if (strstr($text,'%GIROCODE%')){
+            array_push($vars, '%GIROCODE%');
+            array_push($replace, '<img src="ext_scripts/girocode.php" />');
+            //push all required data into session...
+            $_SESSION['party_user']=$entrancedata;
+        }
+        return str_replace($vars, $replace, $text);
     }
 }
 ?>
