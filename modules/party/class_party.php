@@ -49,8 +49,8 @@ class party{
     			$_SESSION['party_info']['s_startdate'] 	= $row['sstartdate'];
     			$_SESSION['party_info']['s_enddate'] 	= $row['senddate'];
     			$_SESSION['party_info']['max_guest'] 	= $row['max_guest'];
+            }   
             }
-        }
 	}
 
 	function get_party_id(){
@@ -672,5 +672,17 @@ class party{
 				return false;
 			}
 		}
+    
+    /*
+     * Get details about this users participation at the party. 
+     * Most prominently the name and price of the entrance ticket
+     */
+    public function GetUserEntranceData($party_id= NULL, $user_id = NULL){
+     global $db, $auth;   
+     if ($user_id === NULL) $user_id = $auth['userid']; //fill from auth, if not given
+     if ($party_id === NULL) $party_id = $_SESSION['party_id'];
+     $data= $db->qry_first("SELECT * FROM %prefix%party_user AS pu LEFT JOIN %prefix%party_prices AS price ON price.price_id=pu.price_id WHERE user_id=%int% and pu.party_id=%int%", $auth['userid'], $party_id);
+     return $data;
+    }
 }
 ?>
