@@ -8,7 +8,7 @@
 session_start();
 if(isset($_SESSION['auth'])){
     $paymentstring = 'U'. $_SESSION['auth']['userid'] . 'PA'. $_SESSION['party_user']['party_id']. 'PR'.$_SESSION['party_user']['price_id'] . ' - '. $_SESSION['party_user']['price_text']. ' - '. $_SESSION['auth']['username'];
-    $amount = 'EUR'.$_SESSION['party_user']['price'];
+    $amount = str_replace(',', '.',  'EUR'.$_SESSION['party_user']['price']);
     //Build include path based on current file location, not from the first called script location onwards (causes problems with inclusion from different parts of the directory tree)
     if (isset($_SESSION['cfg'])) { //import config from session
         $cfg = $_SESSION['cfg'];
