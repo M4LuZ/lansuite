@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<config>
+  <group>
+    <head>
+      <name>Girokonto</name>
+    </head>
+    <items>
+    	<item>
+    		<name>giro_receiver</name>
+    		<type>string</type>
+    		<default>1</default>
+    		<description>Zahlungsempfänger</description>
+    	</item>
+    	<item>
+    		<name>giro_iban</name>
+    		<type>string</type>
+    		<default></default>
+    		<description>Konto IBAN</description>
+    	</item>
+    	<item>
+    		<name>giro_bic</name>
+    		<type>string</type>
+    		<default></default>
+    		<description>Konto BIC</description>
+    	</item>
+    </items>
+  </group>
+</config>

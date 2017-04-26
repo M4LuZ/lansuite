@@ -358,7 +358,7 @@
     
     //export data to $_SESSION for usage outside of LANsuite
     if (isset($config['lansuite']['export_vars'])&& $config['lansuite']['export_vars']){
-        //$_SESSION['cfg'] = $cfg;
+        $_SESSION['cfg'] = $cfg;
         $_SESSION['auth'] = $auth;
         //$_SESSION['config'] = $config;
     }

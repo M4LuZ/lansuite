@@ -38,6 +38,16 @@ class girocode {
     
   public  $girocode_string;
   
+public function __construct() {
+    global $cfg;
+    //check if module is configured
+    if (isset($cfg['giro_receiver']) && isset($cfg['giro_iban']) && isset($cfg['giro_bic'])){
+        $this->receiver_BIC = $cfg['giro_bic'];
+        $this->receiver_name = $cfg['giro_receiver'];
+        $this->receiver_IBAN = $cfg['giro_iban'];
+    }
+}
+  
 public function SetData($amount, $paymentstring){
 $this->payment_amount = $amount;
 $this->payment_usage = $paymentstring; 
