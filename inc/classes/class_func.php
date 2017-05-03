@@ -856,17 +856,16 @@ class func {
     function replaceVariables($text){
         global $auth, $db;
         
-        $vars = array('%USERID%', '%PARTYID%');
-        $replace= array ($auth['userid'], $_SESSION['party_id']);
+        $vars = array('%USERID%', '%PARTYID%','%USERNAME%');
+        $replace= array ($auth['userid'], $_SESSION['party_id'], $auth['username']);
         
         //fetch partyprice...
         include_once 'modules/party/class_party.php';
         $party = new party();
         $entrancedata = $party->GetUserEntranceData($_SESSION['party_id']);
-        $partypricetxt = print_r($entrancedata, true);
         //add this to the replacement array
-        array_push($vars, '%PARTYPRICE%');
-        array_push($replace, $partypricetxt);
+        array_push($vars, '%PARTYPRICE%','%PARTYPRICETEXT%');
+        array_push($replace, $entrancedata['price'],$entrancedata['price_text']);
         
         /*
          * Check if we should add a GiroCode in the text.
