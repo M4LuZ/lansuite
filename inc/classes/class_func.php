@@ -874,7 +874,12 @@ class func {
          */
         if (strstr($text,'%GIROCODE%')){
             array_push($vars, '%GIROCODE%');
-            array_push($replace, '<img src="ext_scripts/girocode.php" />');
+                //check if user is signed in and registered for the party before trying to generate a code
+                if (isset($auth)&& !empty($entrancedata['price_text'])) {
+                array_push($replace, '<img src="ext_scripts/girocode.php" />');
+            } else {
+                array_push($replace, '<p>' . t('Bitte melde dich zuerst zur Party an'). '</p>');                            
+            }
             //push all required data into session...
             $_SESSION['party_user']=$entrancedata;
         }
