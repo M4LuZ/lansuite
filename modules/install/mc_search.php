@@ -2,13 +2,12 @@
 
 switch ($_GET['step']) {
     case 10:
-        $md = new masterdelete();
+        $md = new \LanSuite\MasterDelete();
         $md->MultiDelete('comments', 'commentid');
         break;
 }
 
-include_once('modules/mastersearch2/class_mastersearch2.php');
-$ms2 = new mastersearch2();
+$ms2 = new \LanSuite\Module\MasterSearch2\MasterSearch2();
 
 $ms2->query['from'] = "%prefix%comments AS c
   LEFT JOIN %prefix%user AS u ON u.userid = c.creatorid";
@@ -18,7 +17,11 @@ $ms2->config['EntriesPerPage'] = 30;
 $ms2->AddTextSearchField(t('Kommentar'), array('c.text' => 'like'));
 
 $list = array('' => t('Alle'), '0' => t('System'));
-$res = $db->qry('SELECT u.userid, u.username FROM %prefix%comments AS c
+$res = $db->qry('
+  SELECT
+    u.userid,
+    u.username
+  FROM %prefix%comments AS c
   LEFT JOIN %prefix%user AS u ON u.userid = c.creatorid
   GROUP BY c.creatorid');
 while ($row = $db->fetch_array($res)) {

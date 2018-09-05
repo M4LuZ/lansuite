@@ -1,24 +1,22 @@
 <?php
 
 switch ($_GET['step']) {
-  // Delete
+    // Delete
     case 10:
-        $md = new masterdelete();
+        $md = new \LanSuite\MasterDelete();
         $md->MultiDelete('cron', 'jobid');
         break;
 
-  // Run now
+    // Run now
     case 20:
-        include_once("modules/cron2/class_cron2.php");
-        $cron2 = new cron2();
+        $cron2 = new LanSuite\Module\Cron2\Cron2();
 
         $dsp->AddDoubleRow(t('Folgender SQL-Befehl wurde ausgeführt'), $cron2->Run($_GET['jobid']));
         $dsp->AddBackButton('index.php?mod=cron2');
         break;
   
     default:
-        include_once('modules/mastersearch2/class_mastersearch2.php');
-        $ms2 = new mastersearch2('cron2');
+        $ms2 = new \LanSuite\Module\MasterSearch2\MasterSearch2('cron2');
 
         $ms2->query['from'] = "%prefix%cron AS c";
 
@@ -36,5 +34,3 @@ switch ($_GET['step']) {
         $dsp->AddSingleRow($dsp->FetchSpanButton(t('Hinzufügen'), 'index.php?mod=cron2&action=add'));
         break;
 }
-
-$dsp->AddContent();

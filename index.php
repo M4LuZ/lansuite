@@ -2,6 +2,8 @@
 // Composer autoloading
 require __DIR__ . '/vendor/autoload.php';
 
+use Symfony\Component\Debug\Debug;
+
 // Set error_reporting.
 // It is set to this value on purpose, because otherwise
 // LanSuite might not work properly anymore.
@@ -14,7 +16,15 @@ if (function_exists('ini_set')) {
     ini_set('url_rewriter.tags', '');
 }
 
-function myErrorHandler($errno, $errstr, $errfile, $errline) {
+/**
+ * @param int $errno
+ * @param string $errstr
+ * @param string $errfile
+ * @param int $errline
+ * @return bool
+ */
+function myErrorHandler($errno, $errstr, $errfile, $errline)
+{
     global $PHPErrors, $PHPErrorsFound, $db, $auth;
 
     // Only show errors, which sould be reported according to error_reporting
@@ -97,7 +107,8 @@ function myErrorHandler($errno, $errstr, $errfile, $errline) {
 
     // Write to DB-Log
     if (isset($db) and $db->success) {
-        $db->qry('
+        $db->qry(
+            '
             INSERT INTO %prefix%log
             SET date = NOW(),
                 userid = %int%,
@@ -112,15 +123,55 @@ function myErrorHandler($errno, $errstr, $errfile, $errline) {
     return true;
 }
 
-$PHPErrorsFound = 0;
 $PHPErrors = '';
-set_error_handler("myErrorHandler");
+
+// Read definition file
+include_once('inc/base/define.php');
+
+// Read Config and Definitionfiles
+// Load Basic Config
+if (file_exists('inc/base/config.php')) {
+    $config = parse_ini_file('inc/base/config.php', 1);
+
+// Default config. Will be used only until the wizard has created the config file
+} else {
+    $config = [];
+
+    $config['lansuite']['default_design'] = 'simple';
+    $config['lansuite']['chmod_dir'] = '777';
+    $config['lansuite']['chmod_file'] = '666';
+    $config['lansuite']['debugmode'] = '0';
+
+    $config['database']['server'] = 'localhost';
+    $config['database']['user'] = 'root';
+    $config['database']['passwd'] = '';
+    $config['database']['database'] = 'lansuite';
+    $config['database']['prefix'] = 'ls_';
+    $config['database']['charset'] = 'utf8';
+
+    $config['environment']['configured'] = 0;
+}
+
+// If the debug mode is disabled, we launch the original error handler.
+// The original error handler shows PHP Warnings in a typical red box
+if (!$config['lansuite']['debugmode']) {
+    $PHPErrorsFound = 0;
+    set_error_handler("myErrorHandler");
+
+// If the debug mode is enabled, we register the Symonfy/Debug component.
+// This component shows the error in a nice stack trace.
+// More information here: https://symfony.com/components/Debug
+} elseif ($config['lansuite']['debugmode'] > 0) {
+    // TODO Once LanSuite is notice free, we set the $errorReportingLevel back to E_ALL
+    $errorReportingLevel = E_ALL & ~E_NOTICE;
+    Debug::enable($errorReportingLevel);
+}
 
 // Start session-management
 session_start();
 
 // Initialise Frameworkclass for Basic output
-$framework = new framework();
+$framework = new \LanSuite\Framework();
 if (isset($_GET['fullscreen'])) {
     $framework->fullscreen($_GET['fullscreen']);
 }
@@ -148,13 +199,12 @@ $framework->IsMobileBrowser = mobile_device_detect();
 @ini_set('arg_separator.output', '&amp;');
 
 // Base Functions (anything that doesnt belong elsewere)
-$func = new func();
+$func = new \LanSuite\Func();
 
 // Prevent XSS
 foreach ($_GET as $key => $val) {
     if (!is_array($_GET[$key])) {
         $_GET[$key] = $func->NoHTML($_GET[$key], 1);
-
     } else {
         foreach ($_GET[$key] as $key2 => $val2) {
             if (!is_array($_GET[$key][$key2])) {
@@ -198,45 +248,16 @@ if (!get_magic_quotes_gpc()) {
     }
 }
 
-// Read Config and Definitionfiles
-// Load Basic Config
-if (file_exists('inc/base/config.php')) {
-    $config = parse_ini_file('inc/base/config.php', 1);
-
-// Default config. Will be used only until the wizard has created the config file
-} else {
-    $config = array();
-
-    $config['lansuite']['version'] = 'Nightly';
-    $config['lansuite']['default_design'] = 'simple';
-    $config['lansuite']['chmod_dir'] = '777';
-    $config['lansuite']['chmod_file'] = '666';
-    $config['lansuite']['debugmode'] = '0';
-
-    $config['database']['server'] = 'localhost';
-    $config['database']['user'] = 'root';
-    $config['database']['passwd'] = '';
-    $config['database']['database'] = 'lansuite';
-    $config['database']['prefix'] = 'ls_';
-    $config['database']['charset'] = 'utf8';
-
-    $config['environment']['configured'] = 0;
-}
-
-// Read definition file
-include_once('inc/base/define.php');
-
 // Include and Initialize base classes
 $lang = [];
 
-// Debug initialisieren
+// Initialize debug mode
 if ($config['lansuite']['debugmode'] > 0) {
-    require_once('inc/Functions/Debug.php');
-    $debug = new debug($config['lansuite']['debugmode']);
+    $debug = new \LanSuite\Debug($config['lansuite']['debugmode']);
 }
 
 // Load Translationclass. No t()-Function before this point!
-$translation = new translation();
+$translation = new \LanSuite\Translation();
 
 $smarty = new Smarty();
 $smarty->template_dir = '.';
@@ -250,14 +271,17 @@ if (isset($debug)) {
     $debug->tracker("Include and Init Smarty");
 }
 
+// Global counter for \LanSuite\Module\MasterSearch2\MasterSearch2 class
+$ms_number = 0;
+
 // Display Functions (to load the lansuite-templates)
-$dsp = new display();
+$dsp = new \LanSuite\Display();
 
 // DB Functions (to work with the databse)
-$db = new db();
+$db = new \LanSuite\DB();
 
 // Security Functions (to lock pages)
-$sec = new sec();
+$sec = new \LanSuite\Security();
 
 if (isset($debug)) {
     $debug->tracker("Include and Init Base Classes");
@@ -290,7 +314,6 @@ if ($config['environment']['configured'] == 0) {
     if ($_GET["action"] == "wizard" && isset($_GET["step"]) && $_GET["step"] > 3) {
         $cfg = $func->read_db_config();
     }
-
 } else {
     // Normal auth cycle and Database-init
     $db->connect(0);
@@ -305,7 +328,10 @@ if ($config['environment']['configured'] == 0) {
     }
 
     $cfg = $func->read_db_config();
-    $sec->check_blacklist();
+    $message = $sec->check_blacklist();
+    if (strlen($message) > 0) {
+        die($message);
+    }
 
     if (!$_GET['mod']) {
         $_GET['mod'] = 'home';
@@ -318,7 +344,7 @@ if ($config['environment']['configured'] == 0) {
     }
 
     // Start authentication, just if LS is working
-    $authentication = new auth($frmwrkmode);
+    $authentication = new \LanSuite\Auth($frmwrkmode);
     // Test Cookie / Session if user is logged in
     $auth = $authentication->check_logon();
     // Olduserid for Switback on Boxes
@@ -328,8 +354,7 @@ if ($config['environment']['configured'] == 0) {
 // Initialize party
 // Needed also, when not configured for LanSuite Import
 if ($func->isModActive('party')) {
-    include_once("modules/party/class_party.php");
-    $party = new party();
+    $party = new \LanSuite\Module\Party\Party();
 
 // If without party-module: Just give a fake ID, for many modules need it
 } else {
@@ -445,15 +470,13 @@ unset($dsp);
 // Statistics will be updated only at scriptend, so pagesize and loadtime can be inserted
 if ($db->success) {
     // Statistic Functions (for generating server- and usage-statistics)
-    include_once("modules/stats/class_stats.php");
-    $stats = new stats();
+    $stats = new LanSuite\Module\Stats\Stats();
     unset($stats);
 
     // Check Cronjobs
     if ($_GET['mod'] != 'install') {
         if (!isset($cron2)) {
-            include_once('modules/cron2/class_cron2.php');
-            $cron2 = new cron2();
+            $cron2 = new LanSuite\Module\Cron2\Cron2();
         }
         $cron2->CheckJobs();
         unset($cron2);

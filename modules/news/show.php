@@ -1,5 +1,5 @@
 <?php
-// COUNT NEWS
+
 $get_amount = $db->qry_first('SELECT count(*) as number FROM %prefix%news');
 $overall_news = $get_amount["number"];
 
@@ -39,7 +39,6 @@ if ($overall_news == 0) {
         $smarty->assign('rows', $rows);
         $smarty->assign('pages', $pages["html"] ."<strong><a href=\"index.php?mod=news\">" .t('Zur&uuml;ck') ."</a></strong>");
         $dsp->AddSingleRow($smarty->fetch('modules/news/templates/show_case.htm'));
-        $dsp->AddContent();
     } else {
         if ($cfg["news_shorted"]== "0") {
             $dsp->NewContent(t('Neuigkeiten'), t('Hier siehst du aktuelle Neuigkeiten.'));
@@ -89,7 +88,7 @@ if ($overall_news == 0) {
                 }
                 $smarty->assign('text', $text);
 
-        // GET NUMBER OF COMMENTS
+                // Get number of comments
                 if ($cfg['news_comments_allowed']) {
                     $get_comments = $db->qry_first('SELECT count(*) as number FROM %prefix%comments WHERE relatedto_id=%int% AND relatedto_item=\'news\'', $newsid);
 
@@ -98,14 +97,14 @@ if ($overall_news == 0) {
                     }
                 }
 
-        // Buttons
+                // Buttons
                 $buttons = "";
                 if ($auth["type"] > 1) {
-                    $buttons .= $dsp->FetchIcon("index.php?mod=news&amp;action=change&amp;step=2&amp;newsid=$newsid", "edit") . " ";
-                    $buttons .= $dsp->FetchIcon("index.php?mod=news&amp;action=delete&amp;step=2&amp;newsid=$newsid", "delete") . " ";
+                    $buttons .= $dsp->FetchIcon("edit", "index.php?mod=news&amp;action=change&amp;step=2&amp;newsid=$newsid") . " ";
+                    $buttons .= $dsp->FetchIcon("delete", "index.php?mod=news&amp;action=delete&amp;step=2&amp;newsid=$newsid") . " ";
                 }
                 if ($cfg['news_comments_allowed']) {
-                    $buttons .= $dsp->FetchIcon("index.php?mod=news&amp;action=comment&amp;newsid=$newsid", "quote") . " ";
+                    $buttons .= $dsp->FetchIcon("quote", "index.php?mod=news&amp;action=comment&amp;newsid=$newsid") . " ";
                 }
                 $smarty->assign('buttons', $buttons);
                 $rows .= $smarty->fetch("modules/news/templates/show_row_$type.htm");
@@ -134,7 +133,7 @@ if ($overall_news == 0) {
                     $smarty->assign('icon', '');
                 }
 
-                $newsid                                                     = $row["newsid"];
+                $newsid = $row["newsid"];
                 $howmany++;
                 $smarty->assign('date', $func->unixstamp2date($row["date"], "daydatetime"));
 
@@ -162,14 +161,14 @@ if ($overall_news == 0) {
                     }
                 }
 
-        // Buttons
+                // Buttons
                 $buttons = "";
                 if ($auth["type"] > 1) {
-                    $buttons .= $dsp->FetchIcon("index.php?mod=news&amp;action=change&amp;step=2&amp;newsid=$newsid", "edit") . " ";
-                    $buttons .= $dsp->FetchIcon("index.php?mod=news&amp;action=delete&amp;step=2&amp;newsid=$newsid", "delete") . " ";
+                    $buttons .= $dsp->FetchIcon("edit", "index.php?mod=news&amp;action=change&amp;step=2&amp;newsid=$newsid") . " ";
+                    $buttons .= $dsp->FetchIcon("delete", "index.php?mod=news&amp;action=delete&amp;step=2&amp;newsid=$newsid") . " ";
                 }
                 if ($cfg['news_comments_allowed']) {
-                    $buttons .= $dsp->FetchIcon("index.php?mod=news&amp;action=comment&amp;newsid=$newsid", "quote") . " ";
+                    $buttons .= $dsp->FetchIcon("quote", "index.php?mod=news&amp;action=comment&amp;newsid=$newsid") . " ";
                 }
                 $smarty->assign('buttons', $buttons);
 
@@ -212,13 +211,11 @@ if ($overall_news == 0) {
             }
         }
 
-    // SET TEMPLATE CASE VARS
         $smarty->assign('number', $overall_news);
         $templ_news_case_number_per_site = $howmany;
         $smarty->assign('pages', $pages["html"]);
 
         $smarty->assign('rows', $rows);
         $dsp->AddSingleRow($smarty->fetch("modules/news/templates/show_case.htm"));
-        $dsp->AddContent();
     }
 }

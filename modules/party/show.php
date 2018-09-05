@@ -1,41 +1,15 @@
 <?php
 
-function GetActiveState($id)
-{
-    global $cfg;
-
-    if ($cfg['signon_partyid'] == $id) {
-        return 'Aktive Party';
-    } else {
-        return '<a href="index.php?mod=party&action=show&step=10&party_id='. $id .'">Aktivieren</a>';
-    }
-}
-
-function GetMinimumAgeString($minage)
-{
-    return ($minage == 0) ? t('Kein Mindestalter') : $minage;
-}
-
 // Set Active PartyID
 if ($_GET['step'] == 10 and is_numeric($_GET['party_id'])) {
     $db->qry("UPDATE %prefix%config SET cfg_value = %int% WHERE cfg_key = 'signon_partyid'", $_GET['party_id']);
     $cfg['signon_partyid'] = $_GET['party_id'];
 }
 
-function GetGuests($max_guest)
-{
-    global $db, $func, $line;
-
-    $row = $db->qry_first('SELECT COUNT(*) AS anz FROM %prefix%party_user WHERE party_id = %int%', $line['party_id']);
-    $row2 = $db->qry_first('SELECT COUNT(*) AS anz FROM %prefix%party_user WHERE paid > 0 AND party_id = %int%', $line['party_id']);
-    return $func->CreateSignonBar($row['anz'], $row2['anz'], $max_guest);
-}
-
 $dsp->NewContent(t('Unsere Partys'), t('Hier siehst du eine Liste aller geplanten Partys'));
 switch ($_GET['step']) {
     default:
-        include_once('modules/mastersearch2/class_mastersearch2.php');
-        $ms2 = new mastersearch2('party');
+        $ms2 = new \LanSuite\Module\MasterSearch2\MasterSearch2('party');
     
         $ms2->query['from'] = "%prefix%partys AS p";
         $ms2->query['default_order_by'] = 'p.startdate DESC';
@@ -63,8 +37,6 @@ switch ($_GET['step']) {
             $ms2->AddIconField('paid', 'index.php?mod=party&action=price&step=2&party_id=');
         }
 
-    #if ($auth['type'] >= 3) $ms2->AddMultiSelectAction(t('Löschen'), 'index.php?mod=party&action=delete', 1);
-
         $ms2->PrintSearch('index.php?mod=party', 'p.party_id');
 
         $dsp->AddSingleRow($dsp->FetchSpanButton(t('Hinzufügen'), 'index.php?mod=party&action=edit'));
@@ -91,4 +63,3 @@ switch ($_GET['step']) {
         $dsp->AddBackButton('index.php?mod=party');
         break;
 }
-$dsp->AddContent();

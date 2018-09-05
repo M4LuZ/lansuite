@@ -1,10 +1,6 @@
 <?php
 
-
-include_once("modules/foodcenter/class_product.php");
-include_once("modules/foodcenter/class_basket.php");
-
-//Prüfe öffungszeiten
+// Check opening times
 $time = time();
 if ($cfg['foodcenter_foodtime'] == 4) {
     $open = true;
@@ -27,21 +23,24 @@ if ($cfg['foodcenter_foodtime'] == 4) {
         $timemessage .= $func->unixstamp2date($cfg['foodcenter_e_time_3'], 'datetime') . HTML_NEWLINE;
     }
 }
+
 // Modul gesperrt
 if ($open == false && $cfg['foodcenter_foodtime'] == 3) {
-    $errormessage = t('Das Foodcenter ist geschlossen. Die Öffnungszeigen sind:'). HTML_NEWLINE;
+    $errormessage = t('Das Foodcenter ist geschlossen. Die Öffnungszeigen sind:') . HTML_NEWLINE;
     $errormessage .= $timemessage;
     
     $func->error($errormessage, "index.php?mod=home");
 } else {
-    $basket = new basket();
-    // InfoMeldung
+    $basket = new LanSuite\Module\Foodcenter\Basket();
+
+    // Info message
     if ($open == false && $cfg['foodcenter_foodtime'] == 1) {
         $errormessage = t('Das Foodcenter ist geschlossen. Bestellungen sind möglich werden aber erst nach Öffnung abgearbeitet.Die Öffnungszeigen sind:'). HTML_NEWLINE;
         $errormessage .= $timemessage;
         $func->error($errormessage, "index.php?mod=home");
     }
-    // Bestellungen sperren
+
+    // Close ordering
     if ($open == false && $cfg['foodcenter_foodtime'] == 2) {
         $errormessage = t('Das Foodcenter ist geschlossen. Die Produkte werden nicht im Warenkorb abgelegt. Die Öffnungszeigen sind:'). HTML_NEWLINE;
         $errormessage .= $timemessage;
@@ -49,7 +48,8 @@ if ($open == false && $cfg['foodcenter_foodtime'] == 3) {
     } else {
         $basket->add_to_basket_from_global();
     }
-    // Productgroups
+
+    // Product groups
     $row = $db->qry("SELECT * FROM %prefix%food_cat");
     $i = 1;
     while ($data = $db->fetch_array($row)) {
@@ -63,12 +63,12 @@ if ($open == false && $cfg['foodcenter_foodtime'] == 3) {
     }
     $dsp->NewContent(t('Speiseliste'));
 
-
-    $product_list = new product_list();
+    $product_list = new LanSuite\Module\Foodcenter\ProductList();
     
     if ($basket->count > 0) {
         $dsp->AddSingleRow("<b><a href='index.php?mod=foodcenter&action=basket'>" . $basket->count . t(' Produkt(e) im Warenkorb') . "</a></b>", " align=\"right\"");
     }
+
     if ($_GET['info']) {
         $product_list->load_cat($cat[$_GET['headermenuitem']]);
         $product_list->get_info($_GET['info'], "index.php?mod=foodcenter&action=showfood&headermenuitem={$_GET['headermenuitem']}");
@@ -81,5 +81,4 @@ if ($open == false && $cfg['foodcenter_foodtime'] == 3) {
             $dsp->AddSingleRow(t('In dieser Kategorie sind keine Produkte vorhanden'));
         }
     }
-    $dsp->AddContent();
 }

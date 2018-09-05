@@ -1,10 +1,14 @@
 <?php
 
-include_once('modules/guestlist/class_guestlist.php');
-$guestlist = new guestlist;
+$seating = new \LanSuite\Module\Seating\Seat2();
+
+$mail = new \LanSuite\Module\Mail\Mail();
+$userManager = new \LanSuite\Module\UsrMgr\UserManager($mail);
+
+$guestlist = new LanSuite\Module\GuestList\GuestList($seating, $userManager);
 
 switch ($_GET['step']) {
-  // Paid
+    // Paid
     case 10:
         if (!$_POST['action'] and $_GET['userid']) {
             $_POST['action'][$_GET['userid']] = 1;
@@ -33,7 +37,7 @@ switch ($_GET['step']) {
         }
         break;
 
-  // Not paid
+    // Not paid
     case 11:
         if (!$_POST['action'] and $_GET['userid']) {
             $_POST['action'][$_GET['userid']] = 1;
@@ -62,7 +66,7 @@ switch ($_GET['step']) {
         }
         break;
 
-  // Check in
+    // Check in
     case 20:
         if (!$_POST['action'] and $_GET['userid']) {
             $_POST['action'][$_GET['userid']] = 1;
@@ -76,12 +80,12 @@ switch ($_GET['step']) {
             }
             $func->confirmation(t('Checkin wurde durchgeführt'));
             if ($func->isModActive('foodcenter')) {
-                $dsp->AddSingleRow(t('Zahlung vornehmen'). ': '.$dsp->AddIcon('paid', 'index.php?mod=foodcenter&action=account&act=payment&step=2&userid='.$_GET['userid']));
+                $dsp->AddSingleRow(t('Zahlung vornehmen'). ': '.$dsp->FetchIcon('paid', 'index.php?mod=foodcenter&action=account&act=payment&step=2&userid=' . $_GET['userid']));
             }
         }
         break;
 
-  // Check out
+    // Check out
     case 21:
         if (!$_POST['action'] and $_GET['userid']) {
             $_POST['action'][$_GET['userid']] = 1;
@@ -95,12 +99,12 @@ switch ($_GET['step']) {
             }
             $func->confirmation(t('Checkout wurde durchgeführt'));
             if ($func->isModActive('foodcenter')) {
-                $dsp->AddSingleRow(t('Zahlung vornehmen') .': '.$dsp->AddIcon('paid', 'index.php?mod=foodcenter&action=account&act=payment&step=2&userid='.$_GET['userid']));
+                $dsp->AddSingleRow(t('Zahlung vornehmen') .': '.$dsp->FetchIcon('paid', 'index.php?mod=foodcenter&action=account&act=payment&step=2&userid=' . $_GET['userid']));
             }
         }
         break;
 
-  // Delete check in + out
+    // Delete check in + out
     case 22:
         if (!$_POST['action'] and $_GET['userid']) {
             $_POST['action'][$_GET['userid']] = 1;

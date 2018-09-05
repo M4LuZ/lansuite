@@ -1,5 +1,5 @@
 <?php
-// if logged out
+// If logged out
 if (!$auth['userid']) {
     $dsp->NewContent(t('Posteingang'));
     $func->information(t('Um deinen Posteingang sehen zu können, musst du dich zuerst einloggen. Nutzen kannst du das <a href="index.php?mod=mail&action=newmail">Kontaktformular</a> um Mails zu versenden. Dies ist auch im ausgeloggten Zustand möglich.'));
@@ -8,8 +8,9 @@ if (!$auth['userid']) {
 // If logged in
 if ($auth['userid']) {
     switch ($_GET['step']) {
-    // Lable
-        case 10:  // None
+        // Label
+        // None
+        case 10:
         case 11:
         case 12:
         case 13:
@@ -20,7 +21,7 @@ if ($auth['userid']) {
             }
             break;
 
-    // Move to trashcan
+        // Move to trashcan
         case 20:
             if (!$_POST['action'] and $_GET['mailid']) {
                 $_POST['action'][$_GET['mailid']] = 1;
@@ -41,28 +42,11 @@ if ($auth['userid']) {
     $colors[4] = 'yellow';
     $colors[5] = 'purple';
 
-  
-    function MailStatus($status)
-    {
-        global $lang;
-        if ($status == "new") {
-            return t('Ungelesen');
-        }
-        if ($status == "read") {
-            return t('Gelesen');
-        }
-        if ($status == "reply") {
-            return t('Beantwortet');
-        }
-    }
-
     $mail_new_total = $db->qry_first("SELECT count(*) as n FROM %prefix%mail_messages WHERE ToUserID = %int% AND mail_status = 'active' AND des_status = 'new'", $auth['userid']);
     $mail_total = $db->qry_first("SELECT count(*) as n FROM %prefix%mail_messages WHERE ToUserID = %int% AND mail_status = 'active'", $auth['userid']);
     $dsp->NewContent(t('Posteingang'), t('Du hast <b>%1</b> Mail(s) empfangen. Davon sind <b>%2</b> ungelesen.', array($mail_total['n'], $mail_new_total['n'])));
     
-  
-    include_once('modules/mastersearch2/class_mastersearch2.php');
-    $ms2 = new mastersearch2();
+    $ms2 = new \LanSuite\Module\MasterSearch2\MasterSearch2();
 
     $ms2->query['from'] = "%prefix%mail_messages AS m LEFT JOIN %prefix%user AS u ON m.FromUserID = u.userid";
     $ms2->query['where'] = "m.toUserID = '{$auth['userid']}' AND m.mail_status = 'active'";

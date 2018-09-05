@@ -2,8 +2,7 @@
 
 switch ($_GET["step"]) {
     default:
-        include_once('modules/mastersearch2/class_mastersearch2.php');
-        $ms2 = new mastersearch2('install');
+        $ms2 = new \LanSuite\Module\MasterSearch2\MasterSearch2('install');
 
         $ms2->query['from'] = "%prefix%stats_auth AS a
       LEFT JOIN %prefix%user AS u ON a.userid = u.userid";
@@ -12,9 +11,13 @@ switch ($_GET["step"]) {
         $ms2->query['default_order_by'] = 'a.lasthit DESC';
 
         $list = array('' => t('Alle'), '0' => t('System'));
-        $res = $db->qry("SELECT l.userid, u.username FROM %prefix%log AS l
-      LEFT JOIN %prefix%user AS u ON u.userid = l.userid
-      GROUP BY l.userid");
+        $res = $db->qry("
+          SELECT
+            l.userid,
+            u.username
+          FROM %prefix%log AS l
+          LEFT JOIN %prefix%user AS u ON u.userid = l.userid
+          GROUP BY l.userid");
         while ($row = $db->fetch_array($res)) {
             if ($row['userid']) {
                 $list[$row['userid']] = $row['username'];
@@ -37,10 +40,8 @@ switch ($_GET["step"]) {
         $ms2->AddResultField(t('Session-ID'), 'a.sessid');
         $ms2->AddResultField(t('Benutzername'), 'u.username', 'UserNameAndIcon');
         $ms2->AddResultField(t('IP'), 'a.ip');
-    #$ms2->AddResultField(t('Login?'), 'a.login');
         $ms2->AddResultField(t('Hits'), 'a.hits');
         $ms2->AddResultField(t('Visits'), 'a.visits');
-    #$ms2->AddResultField(t('Letzter Aufruf'), 'a.logtime', 'MS2GetDate');
         $ms2->AddResultField(t('Eingeloggt'), 'a.logintime', 'MS2GetDate');
         $ms2->AddResultField(t('Letzter Aufruf'), 'a.lasthit', 'MS2GetDate');
 
@@ -52,7 +53,7 @@ switch ($_GET["step"]) {
         break;
 
     case 10:
-        $md = new masterdelete();
+        $md = new \LanSuite\MasterDelete();
         $md->MultiDelete('stats_auth', 'sessid');
         break;
 }

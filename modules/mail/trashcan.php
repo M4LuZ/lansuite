@@ -1,26 +1,26 @@
 <?php
-$mail_total = $db->qry_first("SELECT count(*) as n FROM %prefix%mail_messages WHERE ToUserID = %int% AND mail_status = 'delete'", $auth['userid']);
-$mail_unread_total = $db->qry_first("SELECT count(*) as n FROM %prefix%mail_messages WHERE ToUserID = %int% AND mail_status = 'delete' AND des_status = 'new'", $auth['userid']);
+$mail_total = $db->qry_first("
+  SELECT
+    COUNT(*) as n
+  FROM %prefix%mail_messages
+  WHERE
+    ToUserID = %int%
+    AND mail_status = 'delete'", $auth['userid']);
+
+$mail_unread_total = $db->qry_first("
+  SELECT
+    COUNT(*) as n
+  FROM %prefix%mail_messages
+  WHERE
+    ToUserID = %int%
+    AND mail_status = 'delete'
+    AND des_status = 'new'", $auth['userid']);
 
 $dsp->NewContent(t('Papierkorb'), t('Du hast <b>%1</b> Mail(s) in ihrem Papierkorb. Davon wurde(n) <b>%2</b> nicht von dir gelesen.', $mail_total["n"], $mail_unread_total["n"]));
 
-function MailStatus($status)
-{
-    global $lang;
-    if ($status == "new") {
-        return t('Ungelesen');
-    }
-    if ($status == "read") {
-        return t('Gelesen');
-    }
-    if ($status == "reply") {
-        return t('Beantwortet');
-    }
-}
-
 if ($auth['userid']) {
     switch ($_GET['step']) {
-    // check if it can delete from Database and delete
+        // check if it can delete from Database and delete
         case 20:
             if (!$_POST['action'] and $_GET['mailid']) {
                 $_POST['action'][$_GET['mailid']] = 1;
@@ -39,8 +39,7 @@ if ($auth['userid']) {
     }
 }
 
-include_once('modules/mastersearch2/class_mastersearch2.php');
-$ms2 = new mastersearch2();
+$ms2 = new \LanSuite\Module\MasterSearch2\MasterSearch2();
 
 $ms2->query['from'] = "%prefix%mail_messages AS m LEFT JOIN %prefix%user AS u ON m.FromUserID = u.userid";
 $ms2->query['where'] = "m.toUserID = '{$auth['userid']}' AND m.mail_status = 'delete' AND rx_deleted = 0";
@@ -64,6 +63,5 @@ $ms2->AddIconField('details', 'index.php?mod=mail&action=showmail&ref=trash&mail
 $ms2->AddIconField('delete', 'index.php?mod=mail&action=trashcan&step=20&mailid=', t('Entgültig löschen'), '', 10);
 
 $ms2->AddMultiSelectAction(t('Entgültig löschen'), 'index.php?mod=mail&action=trashcan&step=20', 1, 'delete');
-
 
 $ms2->PrintSearch('index.php?mod=mail&action=trash', 'm.mailid');

@@ -1,7 +1,6 @@
 <?php
-include_once("modules/foodcenter/class_product.php");
-include_once("modules/foodcenter/class_accounting.php");
-$product_list = new product_list();
+
+$product_list = new LanSuite\Module\Foodcenter\ProductList();
 
 if ($auth['type'] < 2) {
     unset($_GET['step']);
@@ -10,7 +9,7 @@ if ($auth['type'] < 2) {
 switch ($_GET['step']) {
     case 3:
         $time = time();
-        if ($_GET['status'] == 6 | $_GET['status'] == 7) {
+        if ($_GET['status'] == 6 || $_GET['status'] == 7) {
             $db->qry("UPDATE %prefix%food_ordering SET status = %string%, lastchange = %string%, supplytime = %string%  WHERE id = %int%", $_GET['status'], $time, $time, $_GET['id']);
         } elseif ($_GET['status'] == 8) {
             $prodrow = $db->qry_first("SELECT * FROM %prefix%food_ordering WHERE id = %int%", $_GET['id']);
@@ -19,12 +18,12 @@ switch ($_GET['step']) {
                 $count_array[] = "<option selected value=\"{$prodrow['pice']}\">".t('Alle')."</option>";
                 
                 for ($i = $prodrow['pice']; $i > 0; $i--) {
-                    $count_array[] .= "<option value=\"{$i}\">{$i}</option>";
+                    $count_array[] = "<option value=\"{$i}\">{$i}</option>";
                 }
                 $_GET['step'] = 10;
             } else {
                 $price = 0;
-                $account = new accounting($prodrow['userid']);
+                $account = new LanSuite\Module\Foodcenter\Accounting($prodrow['userid']);
                 if (stristr($prodrow['opts'], "/")) {
                     $values = explode("/", $prodrow['opts']);
 
@@ -63,19 +62,16 @@ switch ($_GET['step']) {
         break;
 }
 
-
 switch ($_GET['step']) {
     default:
-        include_once('modules/mastersearch2/class_mastersearch2.php');
-        $ms2 = new mastersearch2('news');
+        $ms2 = new \LanSuite\Module\MasterSearch2\MasterSearch2('news');
 
-        $ms2->query['from'] = "%prefix%food_ordering AS a
-    	  LEFT JOIN %prefix%food_option AS o ON a.opts = o.id
-		  LEFT JOIN %prefix%food_product AS p ON a.productid = p.id
-		  LEFT JOIN %prefix%food_supp AS s ON p.supp_id = s.supp_id
-		  LEFT JOIN %prefix%user AS u ON u.userid = a.userid";
+        $ms2->query['from'] = "%prefix%food_ordering AS a 
+            LEFT JOIN %prefix%food_option AS o ON a.opts = o.id
+            LEFT JOIN %prefix%food_product AS p ON a.productid = p.id
+            LEFT JOIN %prefix%food_supp AS s ON p.supp_id = s.supp_id
+            LEFT JOIN %prefix%user AS u ON u.userid = a.userid";
 
-    // Array Abfragen für DropDowns
         $status_list = array('' => 'Alle');
         $row = $db->qry("SELECT * FROM %prefix%food_status");
         while ($res = $db->fetch_array($row)) {
@@ -100,24 +96,15 @@ switch ($_GET['step']) {
         $ms2->AddTextSearchDropDown('Status', 'a.status', $status_list, '1');
         $ms2->AddTextSearchDropDown('Lieferant', 's.supp_id', $supp_list);
         $ms2->AddTextSearchDropDown('Party', 'a.partyid', $party_list, $party->party_id);
-/*
-    $userquery = $db->qry("SELECT * FROM %prefix%food_ordering AS a LEFT JOIN %prefix%user AS u ON a.userid=u.userid");
-    $user_array[''] = t('');
-    while ($userrows = $db->fetch_array($userquery)) {
-        $user_array[$userrows['userid']] = $userrows['username'];
-    }
-    $ms2->AddTextSearchDropDown('Besteller', 'a.userid', $user_array);
-*/
+
         $ms2->AddSelect('u.userid');
         $ms2->AddResultField('Titel', 'p.caption');
-    //$ms2->AddResultField('Option', 'o.caption');
         $ms2->AddResultField('Einheit', 'o.unit');
         $ms2->AddResultField('Anzahl', 'a.pice');
         $ms2->AddResultField('Lieferant', 's.name');
         $ms2->AddResultField('Besteller', 'u.username', 'UserNameAndIcon');
         $ms2->AddResultField('Bestellt', 'a.ordertime', 'MS2GetDate');
         $ms2->AddResultField('Geliefert', 'a.supplytime', 'MS2GetDate');
-
         $ms2->AddIconField('details', 'index.php?mod=foodcenter&action=statchange&step=2&id=', t('Details'));
     
         $fc_ordered_status_quest[0]    = t('Status ändern: Abgeholt');
@@ -162,12 +149,11 @@ switch ($_GET['step']) {
 
         $ms2->PrintSearch('index.php?mod=foodcenter&action=statchange', 'a.id');
 
-
         $handle = opendir("ext_inc/foodcenter_templates");
         while ($file = readdir($handle)) {
             if (($file != ".") and ($file != "..") and ($file != ".svn") and (!is_dir($file))) {
                 if ((substr($file, -3, 3) == "htm") && (substr($file, -7, 7) != "row.htm") || (substr($file, -4, 4) == "html") && (substr($file, -8, 8) != "row.html")) {
-                    $file_array[] .= "<option value=\"$file\">$file</option>";
+                    $file_array[] = "<option value=\"$file\">$file</option>";
                 }
             }
         }
@@ -180,12 +166,10 @@ switch ($_GET['step']) {
         $MainContent .= "<input type=\"hidden\" name=\"search_dd_input[2]\" value=\"{$_POST['search_dd_input'][2]}\">\n";
         
         $dsp->AddFormSubmitRow(t('Drucken'));
-        $dsp->AddContent();
         break;
     case 2:
         if ($_POST['action']) {
-            include_once("modules/seating/class_seat.php");
-            $seat2 = new seat2();
+            $seat2 = new \LanSuite\Module\Seating\Seat2();
 
             $time = time();
             $totprice = 0;
@@ -193,30 +177,36 @@ switch ($_GET['step']) {
                 if ($_GET["status"] == 6 | $_GET["status"] == 7) {
                     $db->qry("UPDATE %prefix%food_ordering SET status = %string%, lastchange = %string%, supplytime = %string%  WHERE id = %string%", $_GET["status"], $time, $time, $item);
 
-    //sitzplan popup einbinden
-    //change by jan für sitzplatz popup $item = id in food_ordering table
-                    //unit food_option (größe)
-                    $abfrage = $db->qry_first("SELECT %prefix%food_ordering.userid AS userid,%prefix%food_ordering.pice AS pice,unit, %prefix%food_product.caption AS caption, username, name, firstname
-				FROM %prefix%food_ordering,%prefix%food_option, %prefix%food_product, %prefix%user
-				WHERE %prefix%food_ordering.id = ".$item." 
-				AND lastchange=".$time." 
-				AND supplytime=".$time." 
-				AND %prefix%food_product.id = %prefix%food_option.parentid 
-				AND %prefix%food_ordering.productid = %prefix%food_product.id
-				AND %prefix%user.userid = %prefix%food_ordering.userid");
-                    //$dsp->AddDoubleRow('Ergebnis', $seat2->SeatOfUser($abfrage['userid'], 0, 2));
+                    $abfrage = $db->qry_first("
+                      SELECT
+                        %prefix%food_ordering.userid AS userid,
+                        %prefix%food_ordering.pice AS pice,unit,
+                        %prefix%food_product.caption AS caption,
+                        username,
+                        name,
+                        firstname
+                      FROM
+                        %prefix%food_ordering,
+                        %prefix%food_option,
+                        %prefix%food_product,
+                        %prefix%user
+                      WHERE
+                        %prefix%food_ordering.id = ".$item."
+                        AND lastchange=".$time."
+                        AND supplytime=".$time."
+                        AND %prefix%food_product.id = %prefix%food_option.parentid
+                        AND %prefix%food_ordering.productid = %prefix%food_product.id
+                        AND %prefix%user.userid = %prefix%food_ordering.userid");
                     $dsp->AddDoubleRow('Was -> Wohin', $abfrage['pice'].' x '.$abfrage['caption']. ' ('.$abfrage['unit']. ') -> '.$abfrage['username'].' ('.$abfrage['firstname'].' '.$abfrage['name'].') '.$seat2->SeatOfUser($abfrage['userid'], 0, 2));
-                
-                
-                    //change ende
                 } elseif ($_GET["status"] == 8) {
                     $totprice = 0;
                     $prodrow = $db->qry_first("SELECT * FROM %prefix%food_ordering WHERE id = %string%", $item);
                 
                     unset($account);
-                    $account = new accounting($prodrow['userid']);
+                    $account = new LanSuite\Module\Foodcenter\Accounting($prodrow['userid']);
                     $price = 0;
                     $tempdesc = "";
+
                     if (stristr($prodrow['opts'], "/")) {
                         $values = explode("/", $prodrow['opts']);
 
@@ -272,6 +262,5 @@ switch ($_GET['step']) {
         $dsp->SetForm("index.php?mod=foodcenter&action=statchange&step=3&id={$_GET['id']}&status=4");
         $dsp->AddDropDownFieldRow("delcount", t('Anzahl'), $count_array, "");
         $dsp->AddFormSubmitRow(t('Weiter'));
-        $dsp->AddContent();
         break;
 }

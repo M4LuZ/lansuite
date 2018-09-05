@@ -1,68 +1,6 @@
 <?php
+
 include_once('modules/usrmgr/search_main.inc.php');
-
-function ClanURLLink($clan_name)
-{
-    global $line, $func;
-
-    if ($clan_name == '') {
-        return '';
-    } elseif ($func->isModActive('clanmgr')) {
-        return '<a href="index.php?mod=clanmgr&action=clanmgr&step=2&clanid='. $line['clanid'] .'">'. $clan_name .'</a>';
-    } elseif ($clan_name != '' and $line['clanurl'] != '' and $line['clanurl'] != 'http://') {
-        if (substr($line['clanurl'], 0, 7) != 'http://') {
-            $line['clanurl'] = 'http://'. $line['clanurl'];
-        }
-        return '<a href="'. $line['clanurl'] .'" target="_blank">'. $clan_name .'</a>';
-    } else {
-        return $clan_name;
-    }
-}
-
-function IfLowerUserlevel($userid)
-{
-    global $line, $auth;
-  
-    if ($line['type'] < $auth['type']) {
-        return true;
-    } else {
-        return false;
-    }
-}
-
-function IfLowerOrEqualUserlevel($userid)
-{
-    global $line, $auth;
-
-    if ($line['type'] <= $auth['type']) {
-        return true;
-    } else {
-        return false;
-    }
-}
-
-function IfLocked($userid)
-{
-    global $line;
-
-    if ($line['locked']) {
-        return true;
-    } else {
-        return false;
-    }
-}
-
-function IfUnlocked($userid)
-{
-    global $line;
-
-    if (!$line['locked']) {
-        return true;
-    } else {
-        return false;
-    }
-}
-
 
 $ms2->AddTextSearchField(t('Clan'), array('c.name' => 'like'));
 
@@ -87,7 +25,7 @@ $ms2->AddSelect('u.locked');
 if ($cfg['signon_show_clan']) {
     $ms2->AddSelect('c.url AS clanurl');
     $ms2->AddSelect('c.clanid AS clanid');
-    $ms2->AddResultField(t('Clan'), 'c.name AS clan', 'ClanURLLink');
+    $ms2->AddResultField(t('Clan'), 'c.name AS clan', 'ClanURLLinkUsrMgrSearchInc');
 }
 $ms2->AddIconField('details', 'index.php?mod=usrmgr&action=details&userid=', t('Details'));
 $ms2->AddIconField('send_mail', 'index.php?mod=mail&action=newmail&step=2&userID=', t('Mail senden'));
@@ -97,13 +35,12 @@ if ($auth['type'] >= 2) {
 }
 if ($auth['type'] >= 3 and $func->isModActive('foodcenter')) {
     $ms2->AddIconField('paid', 'index.php?mod=foodcenter&action=account&act=payment&step=2&userid=', t('Geld auf Konto buchen'));
-#  $ms2->AddIconField('paid', 'index.php?mod=foodcenter&action=account&act=himbalance&step=2&userid=', t('Kontostand zeigen'));
 }
 $ms2->AddIconField('locked', 'index.php?mod=usrmgr&step=11&userid=', t('Account freigeben'), 'IfLocked');
 $ms2->AddIconField('unlocked', 'index.php?mod=usrmgr&step=10&userid=', t('Account sperren'), 'IfUnlocked');
 
 // Add icons depending on other modules
-$plugin = new plugin('usrmgr_search');
+$plugin = new \LanSuite\Plugin('usrmgr_search');
 while (list($caption, $inc) = $plugin->fetch()) {
     include_once($inc);
 }
@@ -114,7 +51,6 @@ if ($auth['type'] >= 2) {
 if ($auth['type'] >= 3) {
     $ms2->AddIconField('delete', 'index.php?mod=usrmgr&action=delete&step=2&userid=', t('Löschen'));
 }
-
 
 if ($auth['type'] >= 2) {
     $res = $db->qry("SELECT * FROM %prefix%party_usergroups");

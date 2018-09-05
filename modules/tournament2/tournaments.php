@@ -1,79 +1,21 @@
 <?php
 
-$xml = new xml();
-
-function CheckModeForWWCLLeague($league)
-{
-    if ($league and $_POST['mode'] != 'single' and $_POST['mode'] != 'double' and $_POST['mode'] != 'groups') {
-        return t('WWCL-Turniere müssen im SE, DE oder Gruppenspiele Modus ausgetragen werden');
-    } else {
-        return false;
-    }
-}
-
-function CheckModeForLeague($league)
-{
-    if ($league and $_POST['mode'] != 'single' and $_POST['mode'] != 'double') {
-        return t('Diese Liga ist nur im SE und DE Modus möglich');
-    } else {
-        return false;
-    }
-}
-
-function CheckDateInFuture($date)
-{
-    global $lang, $func, $mf;
-
-    if (!$mf->isChange and $func->str2time($date) < time()) {
-        return t('Dieses Datum liegt in der Vergangenheit');
-    } else {
-        return false;
-    }
-}
-
-function CheckModeChangeAllowed($mode)
-{
-    global $mf, $db, $lang;
-
-    $t = $db->qry_first('SELECT mode, status FROM %prefix%tournament_tournaments WHERE tournamentid = %int%', $_GET['tournamentid']);
-    if ($mf->isChange and $t['status'] != 'open' and $t['mode'] != $mode) {
-        if ($t['mode'] == 'single' or $t['mode'] == 'double') {
-            if ($mode != 'single' and $mode != 'double') {
-                return t('Bei bereits generierten Turnieren darf der Modus nur noch zwischen Single-Elimintation und Double-Elimination geändert werden');
-            }
-        } else {
-            return t('Bei bereits generierten Turnieren ist das ändern des Modus nur noch bei Single-Elimintation und Double-Elimination erlaubt');
-        }
-    }
-    return false;
-}
-
-function CheckStateChangeAllowed($state)
-{
-    if ($state == 'process') {
-        return t('Dieser Status kann nicht manuell gesetzt werden. Zum setzen, bitte "Generieren" verwenden');
-    }
-    if ($state == 'closed') {
-        return t('Dieser Status kann nicht manuell gesetzt werden. Er wird automatisch gesetzt, sobald das letzte Ergebnis im Turnier eingetragen wurde');
-    }
-    return false;
-}
-
-$mf = new masterform();
+$xml = new \LanSuite\XML();
+$mf = new \LanSuite\MasterForm();
 
 // Name
 $mf->AddField(t('Turniername'), 'name');
 $mf->AddField(t('Spiel'), 'game');
-$mf->AddField(t('Version'), 'version', '', '', FIELD_OPTIONAL);
+$mf->AddField(t('Version'), 'version', '', '', \LanSuite\MasterForm::FIELD_OPTIONAL);
 $mf->AddDropDownFromTable(t('Turniermanagement'), 'tournamentadmin', 'userid', 'username', 'user', t('Keinem zugeordnet'), 'type >= 2');
 $mf->AddDropDownFromTable(t('Technik/Server'), 'techadmin', 'userid', 'username', 'user', t('Keinem zugeordnet'), 'type >= 2');
 
 $t_state = $db->qry_first('SELECT status FROM %prefix%tournament_tournaments WHERE tournamentid=%int%', $_GET['tournamentid']);
 
 if ($t_state['status'] == 'process') {
-    $mf->AddField(t('Status'), '', IS_TEXT_MESSAGE, t('Turnier wird gerade gespielt'));
+    $mf->AddField(t('Status'), '', \LanSuite\MasterForm::IS_TEXT_MESSAGE, t('Turnier wird gerade gespielt'));
 } elseif ($t_state['status'] == 'closed') {
-    $mf->AddField(t('Status'), '', IS_TEXT_MESSAGE, t('Turnier wurde beendet'));
+    $mf->AddField(t('Status'), '', \LanSuite\MasterForm::IS_TEXT_MESSAGE, t('Turnier wurde beendet'));
 } else {
     $selections = array();
     if ($_POST['status'] == '') {
@@ -84,17 +26,16 @@ if ($t_state['status'] == 'process') {
     $selections['open'] = t('Anmeldung geöffnet');
     $selections['process'] = t('Turnier wird gerade gespielt (Status wird automatisch durch Klick auf "Generieren" gesetzt)');
     $selections['closed'] = t('Turnier beendet (Diese Option schaltet die Rangliste frei)');
-    $mf->AddField(t('Status'), 'status', IS_SELECTION, $selections, '', 'CheckStateChangeAllowed');
+    $mf->AddField(t('Status'), 'status', \LanSuite\MasterForm::IS_SELECTION, $selections, '', 'CheckStateChangeAllowed');
 }
 $mf->AddGroup('Allgemein');
-
 
 // Mode
 $selections = array();
 for ($i = 1; $i <= 20; $i++) {
     $selections[$i] = $i;
 }
-$mf->AddField(t('Spieler pro Team'), 'teamplayer', IS_SELECTION, $selections);
+$mf->AddField(t('Spieler pro Team'), 'teamplayer', \LanSuite\MasterForm::IS_SELECTION, $selections);
 
 $selections = array();
 if ($_POST['maxteams'] == '') {
@@ -103,7 +44,7 @@ if ($_POST['maxteams'] == '') {
 for ($i = 8; $i <= 1024; $i*=2) {
     $selections[$i] = $i;
 }
-$mf->AddField(t('Maximale Teamanzahl'), 'maxteams', IS_SELECTION, $selections);
+$mf->AddField(t('Maximale Teamanzahl'), 'maxteams', \LanSuite\MasterForm::IS_SELECTION, $selections);
 
 $selections = array();
 if ($_POST['mode'] == '') {
@@ -114,11 +55,10 @@ $selections['double'] = t('Double-Elimination');
 $selections['liga'] = t('Liga');
 $selections['groups'] = t('Gruppenspiele + KO');
 $selections['all'] = t('Alle in einem');
-$mf->AddField(t('Spiel-Modus'), 'mode', IS_SELECTION, $selections, '', 'CheckModeChangeAllowed');
+$mf->AddField(t('Spiel-Modus'), 'mode', \LanSuite\MasterForm::IS_SELECTION, $selections, '', 'CheckModeChangeAllowed');
 
-$mf->AddField(t('Blind Draw').'|'.t('Teammitglieder werden zugelost'), 'blind_draw', '', '', FIELD_OPTIONAL);
+$mf->AddField(t('Blind Draw').'|'.t('Teammitglieder werden zugelost'), 'blind_draw', '', '', \LanSuite\MasterForm::FIELD_OPTIONAL);
 $mf->AddGroup(t('Turniermodus'));
-
 
 // Limits
 $selections = array();
@@ -126,17 +66,16 @@ $selections[0] = t('Keine');
 for ($i = 1; $i <= 20; $i++) {
     $selections[$i] = $i;
 }
-$mf->AddField(t('Turniergruppe'), 'groupid', IS_SELECTION, $selections, FIELD_OPTIONAL);
+$mf->AddField(t('Turniergruppe'), 'groupid', \LanSuite\MasterForm::IS_SELECTION, $selections, \LanSuite\MasterForm::FIELD_OPTIONAL);
 
 $selections = array();
 for ($i = 0; $i <= 10; $i++) {
     $selections[$i] = t('Teilnahme kostet') .' '. $i .' '. t('Coins');
 }
-$mf->AddField(t('Coin-Kosten'), 'coins', IS_SELECTION, $selections, FIELD_OPTIONAL);
+$mf->AddField(t('Coin-Kosten'), 'coins', \LanSuite\MasterForm::IS_SELECTION, $selections, \LanSuite\MasterForm::FIELD_OPTIONAL);
 
-$mf->AddField(t('U18-Sperre').'|'.t('Keine Spieler aus Unter-18-Sitzblöcken zulassen'), 'over18', '', '', FIELD_OPTIONAL);
+$mf->AddField(t('U18-Sperre').'|'.t('Keine Spieler aus Unter-18-Sitzblöcken zulassen'), 'over18', '', '', \LanSuite\MasterForm::FIELD_OPTIONAL);
 $mf->AddGroup(t('Anmeldeeinschränkungen'));
-
 
 // Times
 if (!$_POST['starttime']) {
@@ -159,7 +98,7 @@ $selections['2'] = '2';
 $selections['3'] = '3 (Best Of 3)';
 $selections['4'] = '4';
 $selections['5'] = '5 (Best Of 5)';
-$mf->AddField(t('Maximale Spiele pro Runde'), 'max_games', IS_SELECTION, $selections);
+$mf->AddField(t('Maximale Spiele pro Runde'), 'max_games', \LanSuite\MasterForm::IS_SELECTION, $selections);
 
 $selections = array();
 if ($_POST['break_duration'] == '') {
@@ -167,12 +106,12 @@ if ($_POST['break_duration'] == '') {
 }
 $mf->AddField(t('Pause nach jeder Runde (Min.)'), 'break_duration');
 
-$mf->AddField(t('Keine Zeitüberschreitung').'|'.t('Bei Zeitüberschreitung (Beginn der Pause) wird der Gewinner automatisch gelost'), 'defwin_on_time_exceed', '', 1, FIELD_OPTIONAL);
+$mf->AddField(t('Keine Zeitüberschreitung').'|'.t('Bei Zeitüberschreitung (Beginn der Pause) wird der Gewinner automatisch gelost'), 'defwin_on_time_exceed', '', 1, \LanSuite\MasterForm::FIELD_OPTIONAL);
 $mf->AddGroup(t('Zeiten'));
 $mf->AddPage(t('Haupteinstellungen'));
 
 // League + Misc
-$mf->AddField(t('Icon'), 'icon', IS_PICTURE_SELECT, 'ext_inc/tournament_icons', FIELD_OPTIONAL);
+$mf->AddField(t('Icon'), 'icon', \LanSuite\MasterForm::IS_PICTURE_SELECT, 'ext_inc/tournament_icons', \LanSuite\MasterForm::FIELD_OPTIONAL);
 
 // WWCL-Spiel Auswahl
 $xml_file = "";
@@ -190,7 +129,7 @@ while ($akt_game_id = array_shift($game_ids)) {
 }
 asort($selections);
 $selections = array('0' => t('Kein WWCL-Support für dieses Turnier')) + $selections;
-$mf->AddField(t('WWCL-Spiel'), 'wwcl_gameid', IS_SELECTION, $selections, FIELD_OPTIONAL, 'CheckModeForWWCLLeague');
+$mf->AddField(t('WWCL-Spiel'), 'wwcl_gameid', \LanSuite\MasterForm::IS_SELECTION, $selections, \LanSuite\MasterForm::FIELD_OPTIONAL, 'CheckModeForWWCLLeague');
 
 // NGL-Spiel auswahl
 $xml_file = "";
@@ -200,9 +139,8 @@ $xml_file = fread($handle, filesize($file));
 fclose($handle);
 
 $selections = array();
-# and $cfg["sys_country"] != "at" and $cfg["sys_country"] != "ch"
 if ($cfg["sys_country"] != "de") {
-    $mf->AddField(t('NGL-Support ist nur für Partys in Deutschland möglich. Das Land deiner Party kannst du auf der Adminseite einstellen'), 'ngl_gamename', IS_TEXT_MESSAGE, t('NGL-Support ist nur in Deutschland, Österreich, oder der Schweiz möglich. Das Land deiner Party kannst du auf der Adminseite einstellen'));
+    $mf->AddField(t('NGL-Support ist nur für Partys in Deutschland möglich. Das Land deiner Party kannst du auf der Adminseite einstellen'), 'ngl_gamename', \LanSuite\MasterForm::IS_TEXT_MESSAGE, t('NGL-Support ist nur in Deutschland, Österreich, oder der Schweiz möglich. Das Land deiner Party kannst du auf der Adminseite einstellen'));
 } else {
     $country_xml = $xml->get_tag_content("country short=\"{$cfg["sys_country"]}\"", $xml_file);
     $liga_xml = $xml->get_tag_content_array("league", $xml_file);
@@ -213,7 +151,6 @@ if ($cfg["sys_country"] != "de") {
         }
 
         $game_xml = $xml->get_tag_content_array("game", $akt_liga);
-
         if (is_array($game_xml)) {
             while ($game_xml_id = array_shift($game_xml)) {
                 $akt_game_id = $xml->get_tag_content("short", $game_xml_id);
@@ -224,7 +161,7 @@ if ($cfg["sys_country"] != "de") {
     }
     asort($selections);
     $selections = array('' => t('Kein NGL-Support für dieses Turnier')) + $selections;
-    $mf->AddField(t('NGL-Spiel'), 'ngl_gamename', IS_SELECTION, $selections, FIELD_OPTIONAL, 'CheckModeForLeague');
+    $mf->AddField(t('NGL-Spiel'), 'ngl_gamename', \LanSuite\MasterForm::IS_SELECTION, $selections, \LanSuite\MasterForm::FIELD_OPTIONAL, 'CheckModeForLeague');
 }
 
 // LGZ-Spiel auswahl
@@ -243,7 +180,7 @@ foreach ($games as $game) {
 }
 asort($selections);
 $selections = array('' => t('Kein LGZ-Support für dieses Turnier')) + $selections;
-$mf->AddField(t('LGZ-Spiel'), 'lgz_gamename', IS_SELECTION, $selections, FIELD_OPTIONAL, 'CheckModeForLeague');
+$mf->AddField(t('LGZ-Spiel'), 'lgz_gamename', \LanSuite\MasterForm::IS_SELECTION, $selections, \LanSuite\MasterForm::FIELD_OPTIONAL, 'CheckModeForLeague');
 
 // Rules (Extern)
 $selections = array();
@@ -257,10 +194,10 @@ while ($file_name = readdir($verz)) {
 closedir($verz);
 asort($selections);
 $selections = array('' => t('Keines')) + $selections;
-$mf->AddField(t('Externes Regelwerk'), 'rules_ext', IS_SELECTION, $selections, FIELD_OPTIONAL);
+$mf->AddField(t('Externes Regelwerk'), 'rules_ext', \LanSuite\MasterForm::IS_SELECTION, $selections, \LanSuite\MasterForm::FIELD_OPTIONAL);
 
-$mf->AddField(t('Bemerkung / Zusätzliche Regeln'), 'comment', '', HTML_ALLOWED, FIELD_OPTIONAL);
-$mf->AddField(t('Mapcycle (Maps durch Zeilenumbruch trennen)'), 'mapcycle', '', '', FIELD_OPTIONAL);
+$mf->AddField(t('Bemerkung / Zusätzliche Regeln'), 'comment', '', \LanSuite\MasterForm::HTML_ALLOWED, \LanSuite\MasterForm::FIELD_OPTIONAL);
+$mf->AddField(t('Mapcycle (Maps durch Zeilenumbruch trennen)'), 'mapcycle', '', '', \LanSuite\MasterForm::FIELD_OPTIONAL);
 $mf->AddGroup(t('Liga-Support, Regeln und Mapcycle'));
 $mf->AddPage(t('Liga-Support, Regeln und Mapcycle'));
 

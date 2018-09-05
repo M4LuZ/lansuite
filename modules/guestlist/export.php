@@ -1,7 +1,11 @@
 <?php
 
-include_once('modules/guestlist/class_guestlist.php');
-$guestlist = new guestlist;
+$seating = new \LanSuite\Module\Seating\Seat2();
+
+$mail = new \LanSuite\Module\Mail\Mail();
+$userManager = new \LanSuite\Module\UsrMgr\UserManager($mail);
+
+$guestlist = new LanSuite\Module\GuestList\GuestList($seating, $userManager);
 
 switch ($_GET['step']) {
     // Export CSV
@@ -39,38 +43,19 @@ switch ($_GET['step']) {
             foreach ($_POST['action'] as $key => $val) {
                 $guestlist->SetExported($key, $party->party_id);
             }
-            $func->confirmation(t('Die User wurden für die aktuelle Party als exportiert markiert.'));
+            $func->confirmation(t('Die User wurden fÃ¼r die aktuelle Party als exportiert markiert.'));
         }
         break;
 }
 
-include_once('modules/mastersearch2/class_mastersearch2.php');
-$ms2 = new mastersearch2();
-
-function ClanURLLink($clan_name)
-{
-    global $line, $func;
-
-    if ($clan_name == '') {
-        return '';
-    } elseif ($func->isModActive('clanmgr')) {
-        return '<a href="index.php?mod=clanmgr&action=clanmgr&step=2&clanid='. $line['clanid'] .'">'. $clan_name .'</a>';
-    } elseif ($clan_name != '' and $line['clanurl'] != '' and $line['clanurl'] != 'http://') {
-        if (substr($line['clanurl'], 0, 7) != 'http://') {
-            $line['clanurl'] = 'http://'. $line['clanurl'];
-        }
-        return '<a href="'. $line['clanurl'] .'" target="_blank">'. $clan_name .'</a>';
-    } else {
-        return $clan_name;
-    }
-}
+$ms2 = new \LanSuite\Module\MasterSearch2\MasterSearch2();
 
 if (!$party->party_id) {
     $func->information(t('Bitte setzte zuerst eine aktive Party.'));
 } else {
     $ms2->query['from'] = "%prefix%party_user pu
-	INNER JOIN %prefix%user u ON u.userid = pu.user_id
-	LEFT JOIN %prefix%clan c ON c.clanid = u.clanid";
+    INNER JOIN %prefix%user u ON u.userid = pu.user_id
+    LEFT JOIN %prefix%clan c ON c.clanid = u.clanid";
 
     $ms2->query['where'] = 'pu.party_id = '. (int)$party->party_id . ' AND (exported IS NULL OR exported = 0)';
 

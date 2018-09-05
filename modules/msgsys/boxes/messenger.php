@@ -1,24 +1,20 @@
 <?php
-/**
- * Generate Box for Messenger
- *
- * @package lansuite_core
- * @author knox
- * @version $Id: messenger.php 2028 2009-11-23 15:23:32Z jochen.jung $
- */
- 
+
 // Check for valid login
 if ($auth['login']) {
     // Buddylist
     $box->EngangedRow('<span class="copyright">-- Buddy List --</span>');
 
-    $query = $db->qry("SELECT b.buddyid, u.username
-		FROM %prefix%buddys AS b
-		LEFT JOIN %prefix%user AS u ON b.buddyid = u.userid
-		WHERE b.userid = %int%
-		GROUP BY b.buddyid
-		ORDER BY u.username
-		", $auth['userid']);
+    $query = $db->qry("
+      SELECT
+        b.buddyid,
+        u.username
+      FROM %prefix%buddys AS b
+        LEFT JOIN %prefix%user AS u ON b.buddyid = u.userid
+      WHERE
+        b.userid = %int%
+      GROUP BY b.buddyid
+      ORDER BY u.username", $auth['userid']);
 
     while ($row = $db->fetch_array($query)) {
         // Is user online, or offline?
@@ -41,14 +37,14 @@ if ($auth['login']) {
             $item = "message_blink";
             if ($cfg['msgsys_popup']) {
                 $caption = "<script type=\"text/javascript\" language=\"JavaScript\"> 
-								var link = \"index.php?mod=msgsys&amp;action=query&amp;design=base&amp;queryid={$row["buddyid"]}$msg_sid\";
-								var suche = /&amp;/;
+                                var link = \"index.php?mod=msgsys&amp;action=query&amp;design=base&amp;queryid={$row["buddyid"]}$msg_sid\";
+                                var suche = /&amp;/;
 
-								while(suche.exec(link)){
-									link = link.replace(suche, \"&\");
-								}
-					   			window.open(link,'_blank','width=600,height=400,resizable=no');
-							</script>";
+                                while(suche.exec(link)){
+                                    link = link.replace(suche, \"&\");
+                                }
+                                window.open(link,'_blank','width=600,height=400,resizable=no');
+                            </script>";
             } else {
                 $caption = "";
             }
@@ -58,7 +54,7 @@ if ($auth['login']) {
         }
 
         // Output
-        $caption .= "<a href= \"#\" onclick=\"javascript:var w=window.open('index.php?mod=msgsys&amp;action=query&amp;design=base&amp;queryid={$row["buddyid"]}$msg_sid','_blank','width=600,height=400,resizable=no');\" class=\"$class\">". $username . "<span class=\"infobox\">". t('Messenger mit %1 starten', $row["username"]) ."</span></a> ". $dsp->FetchUserIcon($row["buddyid"]) ." <a href=\"index.php?mod=msgsys&amp;action=removebuddy&amp;queryid={$row["buddyid"]}\"><img src=\"design/{$auth["design"]}/images/arrows_delete.gif\" width=\"12\" height=\"13\" hspace=\"1\" vspace=\"0\" border=\"0\"><span class=\"infobox\">". t('Benutzer %1 aus Buddy-Liste entfernen', $row["username"]) ."</span></a>";
+        $caption .= "<a href= \"#\" onclick=\"var w=window.open('index.php?mod=msgsys&amp;action=query&amp;design=base&amp;queryid={$row["buddyid"]}$msg_sid','_blank','width=600,height=400,resizable=no');\" class=\"$class\">". $username . "<span class=\"infobox\">". t('Messenger mit %1 starten', $row["username"]) ."</span></a> ". $dsp->FetchUserIcon($row["buddyid"]) ." <a href=\"index.php?mod=msgsys&amp;action=removebuddy&amp;queryid={$row["buddyid"]}\"><img src=\"design/{$auth["design"]}/images/arrows_delete.gif\" width=\"12\" height=\"13\" hspace=\"1\" vspace=\"0\" border=\"0\"><span class=\"infobox\">". t('Benutzer %1 aus Buddy-Liste entfernen', $row["username"]) ."</span></a>";
         $box->ItemRow($item, $caption);
 
         $buddycount++;
@@ -70,12 +66,14 @@ if ($auth['login']) {
     }
 
     // Users not in buddylist
-    $querynotinlist = $db->qry("SELECT m.senderid, u.username
-		FROM %prefix%messages m
-		LEFT JOIN %prefix%user u ON u.userid = m.senderid
-		WHERE m.receiverid = %int% AND m.new = 1
-		ORDER BY u.username
-		", $auth['userid']);
+    $querynotinlist = $db->qry("
+      SELECT
+        m.senderid,
+        u.username
+      FROM %prefix%messages m
+        LEFT JOIN %prefix%user u ON u.userid = m.senderid
+      WHERE m.receiverid = %int% AND m.new = 1
+      ORDER BY u.username", $auth['userid']);
     while ($row=$db->fetch_array($querynotinlist)) {
         // Session ID
         $msg_sid = "&" . session_name() . "=" . session_id();
@@ -104,7 +102,7 @@ if ($auth['login']) {
             // Output
             $box->ItemRow(
                 "message_blink",
-                "<a href=\"#\" onclick=\"javascript:var w=window.open('index.php?mod=msgsys&amp;action=query&amp;design=base&amp;queryid={$row["senderid"]}$msg_sid','_blank','width=600,height=400,resizable=no');\" class=\"$class\">$username</a> ". $dsp->FetchUserIcon($row["senderid"]) ." <a href=\"index.php?mod=msgsys&amp;action=addbuddy&amp;step=2&amp;userid={$row["senderid"]}\"><img src=\"design/{$auth["design"]}/images/arrows_add.gif\" width=\"12\" height=\"13\" hspace=\"1\" vspace=\"0\" border=\"0\"><span class=\"infobox\">". t('Benutzer %1 in Buddy-Liste aufnehmen', $row["username"]) ."</span></a>"
+                "<a href=\"#\" onclick=\"var w=window.open('index.php?mod=msgsys&amp;action=query&amp;design=base&amp;queryid={$row["senderid"]}$msg_sid','_blank','width=600,height=400,resizable=no');\" class=\"$class\">$username</a> ". $dsp->FetchUserIcon($row["senderid"]) ." <a href=\"index.php?mod=msgsys&amp;action=addbuddy&amp;step=2&amp;userid={$row["senderid"]}\"><img src=\"design/{$auth["design"]}/images/arrows_add.gif\" width=\"12\" height=\"13\" hspace=\"1\" vspace=\"0\" border=\"0\"><span class=\"infobox\">". t('Benutzer %1 in Buddy-Liste aufnehmen', $row["username"]) ."</span></a>"
             );
 
             $notinlist_peoples[$row["senderid"]] = 1;

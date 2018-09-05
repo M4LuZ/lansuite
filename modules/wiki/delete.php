@@ -1,19 +1,20 @@
 <?php
+
 switch ($_GET['step']) {
     default:
         include_once('modules/wiki/search.php');
         break;
 
-  // Delete whole post
+    // Delete whole post
     case 2:
-        $md = new masterdelete();
+        $md = new \LanSuite\MasterDelete();
 
         $md->Delete('wiki', 'postid', $_GET['postid']);
         break;
 
-  // Delete one version
+    // Delete one version
     case 10:
-        $md = new masterdelete();
+        $md = new \LanSuite\MasterDelete();
 
         $md->Delete('wiki_versions', 'versionid', $_GET['versionid']);
         break;

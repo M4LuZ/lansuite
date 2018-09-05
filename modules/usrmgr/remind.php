@@ -6,7 +6,8 @@ if (!$cfg['sys_internet']) {
     $func->information(t('Diese Funktion ist nur im Internetmodus verfügbar'));
 } else {
     switch ($_GET['step']) {
-        case 2: // Email prüfen, Freischaltecode generieren, Email senden
+        // Email prüfen, Freischaltecode generieren, Email senden
+        case 2:
             $user_data = $db->qry_first("SELECT username FROM %prefix%user WHERE email = %string%", $_POST['pwr_mail']);
             if ($user_data['username'] == "LS_SYSTEM") {
                 $func->information(t('Für den System-Account darf kein neues Passwort generiert werden'), "index.php?mod=usrmgr&action=pwrecover&step=1");
@@ -20,8 +21,7 @@ if (!$cfg['sys_internet']) {
 
                 $path = substr($_SERVER['REQUEST_URI'], 0, strpos($_SERVER['REQUEST_URI'], "index.php"));
 
-                include_once("modules/mail/class_mail.php");
-                $mail = new mail();
+                $mail = new \LanSuite\Module\Mail\Mail();
                 $mail->create_inet_mail($user_data['username'], $_POST['pwr_mail'], $cfg['usrmgr_pwrecovery_subject'], str_replace("%USERNAME%", $user_data['username'], str_replace("%PATH%", "http://{$_SERVER['SERVER_NAME']}:{$_SERVER['SERVER_PORT']}{$path}index.php?mod=usrmgr&action=pwrecover&step=3&fcode=$fcode", $cfg['usrmgr_pwrecovery_text'])));
 
                 $func->confirmation(t('Dir wurde nun eine Freischalte-URL an die angegebene Emailadresse gesendet. Mit dem Aufruf dieser URL wird dir neues Passwort generiert werden.'), "index.php");
@@ -30,7 +30,8 @@ if (!$cfg['sys_internet']) {
             }
             break;
 
-        case 3: // Freischaltecode prüfen, Passwort generieren, Freischaltcode zurücksetzen
+        // Freischaltecode prüfen, Passwort generieren, Freischaltcode zurücksetzen
+        case 3:
             $user_data = $db->qry_first("SELECT fcode FROM %prefix%user WHERE fcode = %string%", $_GET['fcode']);
             if (($user_data['fcode']) && ($_GET['fcode'] != '')) {
                 $new_pwd = "";
@@ -55,5 +56,3 @@ if (!$cfg['sys_internet']) {
             break;
     }
 }
-
-$dsp->AddContent();

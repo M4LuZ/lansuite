@@ -1,23 +1,5 @@
 <?php
 
-/*************************************************************************
-*
-*   Lansuite - Webbased LAN-Party Management System
-*   -----------------------------------------------
-*
-*   (c) 2001-2003 by One-Network.Org
-*
-*   Lansuite Version:   2.0
-*   File Version:       2.0
-*   Filename:           Number
-*   Module:             Games
-*   Main editor:        jochen@one-network.org
-*   Last change:        25.05.2004 19:34
-*   Description:        Number Guessing
-*   Remarks:
-*
-**************************************************************************/
-
 $headermenuitem = $_GET["headermenuitem"];
 $action = $_GET["action"];
 $step = $_GET["step"];
@@ -57,8 +39,7 @@ switch ($step) {
     case 3:
         $dsp->AddSingleRow(t('Highscoreliste'));
 
-        include_once('modules/mastersearch2/class_mastersearch2.php');
-        $ms2 = new mastersearch2('games');
+        $ms2 = new \LanSuite\Module\MasterSearch2\MasterSearch2('games');
 
         //Anzeige der Aufgaben
         $ms2->query['from'] = "%prefix%game_hs AS g";
@@ -84,7 +65,7 @@ switch ($step) {
         }
 
         if (!isset($_SESSION["zahl"])) {
-            srand(date(U));
+            srand(date('U'));
             $_SESSION["zahl"] = rand(1, 1000);
             $_POST['eingabe'] = "0";
         }
@@ -120,7 +101,7 @@ switch ($step) {
             $dsp->AddSingleRow(t('Hier kannst du dich in die Highscoreliste eintragen'));
             $dsp->AddDoubleRow(t('Versuche'), $score);
             $dsp->AddTextFieldRow("nick", t('Name'), $auth["username"], "", "", "", $auth['login']);
-            $dsp->AddTextFieldRow("comment", t('Kommentar'), "", "", "", FIELD_OPTIONAL);
+            $dsp->AddTextFieldRow("comment", t('Kommentar'), "", "", "", \LanSuite\MasterForm::FIELD_OPTIONAL);
             
             $dsp->AddFormSubmitRow(t('Weiter'));
 
@@ -128,5 +109,3 @@ switch ($step) {
         }
         break;
 }
-
-$dsp->AddContent();

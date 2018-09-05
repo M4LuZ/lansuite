@@ -1,22 +1,4 @@
 <?php
-//
-/*************************************************************************
-*
-*   Lansuite - Webbased LAN-Party Management System
-*   -----------------------------------------------
-*
-*   (c) 2001-2003 by One-Network.Org
-*
-*   Lansuite Version:   2.0
-*   File Version:       2.0
-*   Filename:           minesweeper
-*   Module:             Minesweeper
-*   Main editor:        jochen@one-network.org
-*   Last change:        24.05.2004 13:35
-*   Description:        The Classic Minesweeper Game, you all know
-*   Remarks:
-*
-**************************************************************************/
 
 $dsp->NewContent(t('Hangman'), t('Versuche durch Buchstaben tippen ein Wort zu erraten'));
 
@@ -30,7 +12,6 @@ if ($_GET["headermenuitem"] == 1) {
 if ($_GET["headermenuitem"] == 2) {
     $_GET["step"] = 5;
 }
-
 
 if (!$_GET["sieg"]) {
     $_POST["buchstabe"] = strtoupper($_POST["buchstabe"]);
@@ -119,7 +100,7 @@ switch ($_GET["step"]) {
             $dsp->AddSingleRow(t('Hier kannst du dich in die Highscoreliste eintragen'));
             $dsp->AddDoubleRow("Fehlversuche", $_SESSION["versuche"]);
             $dsp->AddTextFieldRow("nick", t('Name'), $auth["username"], "", "", "", $auth['login']);
-            $dsp->AddTextFieldRow("comment", t('Kommentar'), "", "", "", FIELD_OPTIONAL);
+            $dsp->AddTextFieldRow("comment", t('Kommentar'), "", "", "", \LanSuite\MasterForm::FIELD_OPTIONAL);
             $dsp->AddFormSubmitRow(t('Weiter'));
         }
         break;
@@ -147,8 +128,7 @@ switch ($_GET["step"]) {
     case 5:
         $dsp->AddSingleRow(t('Highscoreliste'));
 
-        include_once('modules/mastersearch2/class_mastersearch2.php');
-        $ms2 = new mastersearch2('games');
+        $ms2 = new \LanSuite\Module\MasterSearch2\MasterSearch2('games');
 
         //Anzeige der Aufgaben
         $ms2->query['from'] = "%prefix%game_hs AS g";
@@ -176,5 +156,3 @@ switch ($_GET["step"]) {
         $dsp->AddBackButton("index.php?mod=games", "games/hangman");
         break;
 }
-
-$dsp->AddContent();
